@@ -27,7 +27,12 @@ let package = Package(
             exclude: ["rlottie/src/wasm", "rlottie/src/lottie/rapidjson/msinttypes", "rlottie/src/vector/pixman", "rlottie/src/vector/vdrawhelper_neon.cpp"],
             sources: ["rlottie/src", "generate"],
             publicHeadersPath: "Xcode",
-            cSettings: [.headerSearchPath("generate"), .headerSearchPath("rlottie/inc"), .headerSearchPath("rlottie/src/vector"), .headerSearchPath("rlottie/src/vector/freetype")]
+            // NDEBUG disables rlottie's internal C/C++ assert()s. They are debug sanity checks
+            // (e.g. `assert(border->start >= 0)` in the freetype stroker) that are compiled out
+            // in production rlottie builds; leaving them on crashes the host app on edge-case
+            // sticker geometry. Define it for both C and C++ sources.
+            cSettings: [.define("NDEBUG"), .headerSearchPath("generate"), .headerSearchPath("rlottie/inc"), .headerSearchPath("rlottie/src/vector"), .headerSearchPath("rlottie/src/vector/freetype")],
+            cxxSettings: [.define("NDEBUG"), .headerSearchPath("generate"), .headerSearchPath("rlottie/inc"), .headerSearchPath("rlottie/src/vector"), .headerSearchPath("rlottie/src/vector/freetype")]
         )
     ],
     cLanguageStandard: .gnu11,
