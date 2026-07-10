@@ -6,14 +6,14 @@
 // disable JSON assert
 #define RAPIDJSON_ASSERT
 
-// threading DELIBERATELY disabled.
-// With LOTTIE_THREAD_SUPPORT enabled, rlottie renders each animation across a pool of worker
-// threads, and every thread allocates its own ~512x512 (1 MB) intermediate surface for
-// matte/mask layers (SurfaceCache::make_surface -> VBitmap). When many animated stickers render
-// at once, those simultaneous 1 MB allocations blow the process memory limit and throw
-// std::bad_alloc (NSMallocException). Single-threaded rendering allocates matte surfaces one at
-// a time instead of ~16 at once, which keeps peak memory bounded.
-// #define LOTTIE_THREAD_SUPPORT
+// Threading ENABLED (worker pool, one stroker/outline per worker — thread-safe by design).
+// NOTE: do NOT disable LOTTIE_THREAD_SUPPORT: the single-threaded scheduler is a singleton
+// with one shared SW_FT_Stroker and no locking, so concurrent renders from different app
+// threads corrupt each other's state (border->start = -1 -> EXC_BAD_ACCESS in the stroker).
+// The historical OOM blamed on the worker pool actually came from the app eagerly decoding
+// every lottie frame at full 512px; with on-demand thumbnail-sized decoding the per-worker
+// matte surfaces are small and bounded.
+#define LOTTIE_THREAD_SUPPORT
 
 // enable logging
 //#define LOTTIE_LOGGING_SUPPORT
