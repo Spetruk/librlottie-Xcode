@@ -6,17 +6,14 @@
 // disable JSON assert
 #define RAPIDJSON_ASSERT
 
-// enable threading
-#if TARGET_OS_SIMULATOR
-// Apple Platform iOS 9/watchOS 2 simulator does not have Thread Local support
-  #if TARGET_OS_IOS && (__IPHONE_OS_VERSION_MIN_REQUIRED < __IPHONE_10_0)
-  #elif TARGET_OS_WATCH && (__WATCH_OS_VERSION_MIN_REQUIRED < __WATCHOS_3_0)
-  #else
-    #define LOTTIE_THREAD_SUPPORT
-  #endif
-#else
-  #define LOTTIE_THREAD_SUPPORT
-#endif
+// threading DELIBERATELY disabled.
+// With LOTTIE_THREAD_SUPPORT enabled, rlottie renders each animation across a pool of worker
+// threads, and every thread allocates its own ~512x512 (1 MB) intermediate surface for
+// matte/mask layers (SurfaceCache::make_surface -> VBitmap). When many animated stickers render
+// at once, those simultaneous 1 MB allocations blow the process memory limit and throw
+// std::bad_alloc (NSMallocException). Single-threaded rendering allocates matte surfaces one at
+// a time instead of ~16 at once, which keeps peak memory bounded.
+// #define LOTTIE_THREAD_SUPPORT
 
 // enable logging
 //#define LOTTIE_LOGGING_SUPPORT
